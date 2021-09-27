@@ -3,8 +3,9 @@
 targets:
   $default:
     sources:
-      - 'lib/admin_api.dart'
       - 'lib/account_api.dart'
+      - 'lib/admin_api.dart'
       - 'lib/package_api.dart'
       - 'lib/page_data.dart'
       - 'lib/publisher_api.dart'
+      - 'lib/task_api.dart'

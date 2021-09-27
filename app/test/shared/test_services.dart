@@ -72,7 +72,7 @@ void testWithServices(
   Timeout timeout,
 }) {
   scopedTest(name, () async {
-    _setupLogging();
+    setupLogging();
     await withFakeServices(
         configuration: Configuration.test(),
         fn: () async {
@@ -204,7 +204,7 @@ http_testing.MockClientHandler _wrapShelfHandler(shelf.Handler handler) {
 bool _loggingDone = false;
 
 /// Setup logging if environment variable `DEBUG` is defined.
-void _setupLogging() {
+void setupLogging() {
   if (_loggingDone) {
     return;
   }

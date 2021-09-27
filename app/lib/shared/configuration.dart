@@ -45,6 +45,14 @@ class Configuration {
   /// The scheme://host:port prefix for the search service.
   final String searchServicePrefix;
 
+  /// The `scheme://host:port baseUrl for the default service with same
+  /// AppEngine version as this instance.
+  ///
+  /// Useful, if you wish to call a default service with same `runtimeVersion`
+  /// as this instance. Using this URL from services other than _default_ is not
+  /// safe, as services may be deployed independently.
+  final String defaultServiceBaseUrl;
+
   /// The name of the Cloud Storage bucket to use for dartdoc generated output.
   final String dartdocStorageBucketName;
 
@@ -141,6 +149,8 @@ class Configuration {
       searchSnapshotBucketName: '$projectId--search-snapshot',
       backupSnapshotBucketName: '$projectId--backup-snapshots',
       searchServicePrefix: 'https://search-dot-$projectId.appspot.com',
+      defaultServiceBaseUrl:
+          'https://${envConfig.gaeVersion}-dot-$projectId.appspot.com',
       storageBaseUrl: 'https://storage.googleapis.com/',
       pubClientAudience: _pubClientAudience,
       pubSiteAudience:
@@ -188,6 +198,9 @@ class Configuration {
       // TODO: Support finding search on localhost when envConfig.isRunningLocally
       //       is true, this also requires running search on localhost.
       searchServicePrefix: 'https://search-dot-$projectId.appspot.com',
+      defaultServiceBaseUrl: envConfig.isRunningLocally
+          ? 'http://localhost:8080'
+          : 'https://${envConfig.gaeVersion}-dot-$projectId.appspot.com',
       storageBaseUrl: 'https://storage.googleapis.com/',
       pubClientAudience: _pubClientAudience,
       pubSiteAudience:
@@ -233,6 +246,7 @@ class Configuration {
     @required this.searchSnapshotBucketName,
     @required this.backupSnapshotBucketName,
     @required this.searchServicePrefix,
+    @required this.defaultServiceBaseUrl,
     @required this.storageBaseUrl,
     @required this.pubClientAudience,
     @required this.pubSiteAudience,
@@ -276,6 +290,7 @@ class Configuration {
       pubClientAudience: null,
       pubSiteAudience: null,
       adminAudience: null,
+      defaultServiceBaseUrl: 'http://localhost:$frontendPort/',
       gmailRelayServiceAccount: null, // disable email sending
       gmailRelayImpersonatedGSuiteUser: null, // disable email sending
       uploadSignerServiceAccount: null,
@@ -307,6 +322,7 @@ class Configuration {
       pubClientAudience: null,
       pubSiteAudience: null,
       adminAudience: null,
+      defaultServiceBaseUrl: 'http://localhost:0/',
       gmailRelayServiceAccount: null, // disable email sending
       gmailRelayImpersonatedGSuiteUser: null, // disable email sending
       uploadSignerServiceAccount: null,

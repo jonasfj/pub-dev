@@ -244,8 +244,7 @@ class PackageBackend {
 
   /// Get a [Uri] which can be used to download a tarball of the pub package.
   Future<Uri> downloadUrl(String package, String version) async {
-    InvalidInputException.checkSemanticVersion(version);
-    version = canonicalizeVersion(version);
+    version = InvalidInputException.checkSemanticVersion(version);
     return _storage.downloadUrl(package, version);
   }
 
@@ -472,13 +471,11 @@ class PackageBackend {
   /// Throws [NotFoundException] when the version is missing.
   Future<api.VersionInfo> lookupVersion(
       Uri baseUri, String package, String version) async {
-    InvalidInputException.checkSemanticVersion(version);
-    final canonicalVersion = canonicalizeVersion(version);
-    InvalidInputException.checkSemanticVersion(canonicalVersion);
+    version = InvalidInputException.checkSemanticVersion(version);
 
-    final packageKey = db.emptyKey.append(Package, id: package);
-    final packageVersionKey =
-        packageKey.append(PackageVersion, id: canonicalVersion);
+    final packageVersionKey = db.emptyKey
+        .append(Package, id: package)
+        .append(PackageVersion, id: version);
 
     if (!await isPackageVisible(package)) {
       throw NotFoundException.resource('package "$package"');
@@ -545,7 +542,12 @@ class PackageBackend {
 
     _logger
         .info('Redirecting pub client to google cloud storage (uuid: $guid)');
-    return uploadSigner.buildUpload(bucket, object, lifetime, '$url');
+    return uploadSigner.buildUpload(
+      bucket,
+      object,
+      lifetime,
+      successRedirectUrl: '$url',
+    );
   }
 
   /// Finishes the upload of a package.

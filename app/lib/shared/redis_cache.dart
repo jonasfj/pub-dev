@@ -6,11 +6,14 @@ import 'dart:async';
 import 'dart:convert';
 import 'dart:io';
 import 'dart:math';
+import 'dart:typed_data';
 
 import 'package:gcloud/service_scope.dart' as ss;
 import 'package:logging/logging.dart';
 import 'package:neat_cache/cache_provider.dart';
 import 'package:neat_cache/neat_cache.dart';
+import 'package:pub_worker/pana_report.dart' show PanaReport;
+import 'package:pub_worker/blob.dart' show BlobIndex;
 
 import 'package:client_data/package_api.dart' show VersionScore;
 
@@ -250,6 +253,43 @@ class CachePatterns {
       .withPrefix('atom-feed-xml')
       .withTTL(Duration(minutes: 3))
       .withCodec(utf8)['/'];
+
+  /// Cache for [PanaReport] objects using by TaskBackend.
+  Entry<PanaReport> panaReport(String package, String version) => _cache
+      .withPrefix('pana-report')
+      .withTTL(Duration(hours: 24))
+      .withCodec(utf8)
+      .withCodec(json)
+      .withCodec(wrapAsCodec(
+        encode: (PanaReport entry) => entry.toJson(),
+        decode: (data) => PanaReport.fromJson(data as Map<String, dynamic>),
+      ))['$package-$version'];
+
+  /// Cache for pana-log objects, used by TaskBackend.
+  Entry<String> panaLog(String package, String version, String id) => _cache
+      .withPrefix('pana-log')
+      .withCodec(utf8)
+      .withTTL(Duration(hours: 6))['$package-$version/$id'];
+
+  /// Cache for dartdoc-index objects, used by TaskBackend.
+  Entry<BlobIndex> dartdocIndex(String package, String version) => _cache
+      .withPrefix('dartdoc-index')
+      .withTTL(Duration(hours: 24))
+      .withCodec(wrapAsCodec(
+        encode: (BlobIndex entry) => entry.asBytes(),
+        decode: (data) => BlobIndex.fromBytes(data),
+      ))['$package-$version'];
+
+  /// Cache for dartdoc-page used by TaskBackend.
+  Entry<List<int>> dartdocPage(
+    String package,
+    String version,
+    String blobId,
+    String path,
+  ) =>
+      _cache
+          .withPrefix('dartdoc-page')
+          .withTTL(Duration(hours: 6))['$package-$version/$blobId/$path'];
 }
 
 /// The active cache.
