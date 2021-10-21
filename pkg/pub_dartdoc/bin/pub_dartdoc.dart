@@ -37,7 +37,7 @@ Future<void> main(List<String> arguments) async {
   pubDataGenerator.generate(results.packageGraph, config.output);
 
   print('[${DateTime.now().toIso8601String()}] Writing files...');
-  pubResourceProvider.writeFilesToDiskSync();
+  await pubResourceProvider.writeFilesToDiskSync(config.output);
 
   print(
       '[${DateTime.now().toIso8601String()}] Max memory use: ${ProcessInfo.maxRss}');

@@ -15,6 +15,7 @@ import 'package:analyzer/src/generated/source.dart';
 import 'package:dartdoc/dartdoc.dart';
 import 'package:meta/meta.dart';
 import 'package:path/path.dart' as p;
+import 'package:pub_dartdoc_data/blob.dart';
 import 'package:watcher/watcher.dart';
 
 const _defaultMaxFileCount = 10 * 1000 * 1000; // 10 million files
@@ -53,13 +54,26 @@ class PubResourceProvider implements ResourceProvider {
             maxTotalLengthBytes ?? _defaultMaxTotalLengthBytes;
 
   /// Writes in-memory files to disk.
-  void writeFilesToDiskSync() {
-    for (final path in _paths) {
-      final r = _memoryResourceProvider.getResource(path);
-      final c = r as File;
-      final file = io.File(c.path);
-      file.parent.createSync(recursive: true);
-      file.writeAsBytesSync(c.readAsBytesSync());
+  Future<void> writeFilesToDiskSync(String out) async {
+    io.Directory(out).createSync(recursive: true);
+    final b =
+        IndexedBlobBuilder(io.File(p.join(out, 'doc-blob.blob')).openWrite());
+    try {
+      for (final path in _paths) {
+        final r = _memoryResourceProvider.getResource(path);
+        final c = r as File;
+        final file = io.File(c.path);
+        file.parent.createSync(recursive: true);
+        file.writeAsBytesSync(c.readAsBytesSync());
+
+        await b.addFile(
+          p.relative(path, from: out),
+          Stream.value(io.gzip.encode(c.readAsBytesSync())),
+        );
+      }
+    } finally {
+      final index = await b.buildIndex('hello-world');
+      io.File(p.join(out, 'doc-index.json')).writeAsBytesSync(index.asBytes());
     }
   }
 
