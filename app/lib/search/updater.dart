@@ -3,6 +3,7 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'dart:async';
+import 'dart:math';
 
 import 'package:clock/clock.dart';
 import 'package:gcloud/service_scope.dart' as ss;
@@ -60,14 +61,94 @@ class IndexUpdater implements TaskRunner {
   /// complete document for the index.
   @visibleForTesting
   Future<void> updateAllPackages() async {
-    await for (final p in _db.query<Package>().run()) {
+    /*await for (final p in _db.query<Package>().run()) {
       try {
         final doc = await searchBackend.loadDocument(p.name!);
         await _packageIndex.addPackage(doc);
       } on RemovedPackageException catch (_) {
         await _packageIndex.removePackage(p.name!);
       }
+    }*/
+    for (var i = 0; i < 80000; i++) {
+      final readmeText = '''
+Lorem ipsum $i dolor sit amet, consectetur adipiscing elit. Nullam leo ex, 
+fringilla et finibus in, mollis nec urna. Vestibulum sagittis efficitur justo 
+sit amet condimentum. Ut porta accumsan est quis pellentesque. Vivamus finibus 
+fringilla sem, sit amet tempor tellus cursus at. Vestibulum lacus nunc,
+convallis sit amet feugiat in, lobortis vel neque. Curabitur at nulla vehicula,
+interdum felis et, cursus ante. In quis vestibulum ligula. Interdum et 
+malesuada fames ac ante ipsum primis in faucibus. Duis in luctus nisl. 
+Curabitur nisi tortor, vestibulum condimentum hendrerit et, tristique viverra
+dui. Vivamus finibus fringilla arcu, vitae auctor metus luctus id. 
+Interdum et malesuada fames ac ante ipsum primis in faucibus. Praesent 
+vestibulum scelerisque urna, eget viverra arcu. Ut vel vehicula neque. 
+Proin vel pulvinar turpis.
+
+Duis quis velit at neque tempor placerat eget sed eros. Ut sagittis ante nisl, 
+faucibus maximus diam dignissim eu. Aenean tempor, enim eu facilisis elementum,
+nibh nisi sollicitudin risus, vitae aliquam elit massa vitae ex. Sed non justo 
+sapien. Curabitur lacinia vulputate pharetra. Quisque sit amet hendrerit sem. 
+Maecenas volutpat, enim eu lacinia lacinia, turpis mauris eleifend tortor, eu 
+consequat augue metus et nibh. Sed eu dolor dui. Aliquam quam quam, ultrices ut 
+mauris vitae, ullamcorper lacinia turpis. Cras dignissim, orci sed scelerisque 
+sodales, massa augue volutpat orci, vel semper leo nisi eu erat. Duis tempus
+ maximus placerat.
+
+Lorem ipsum dolor sit amet, consectetur adipiscing elit. Sed a convallis dui.
+Nam consectetur nulla vulputate augue tincidunt fermentum. In odio tellus, 
+hendrerit ac tortor eu, faucibus fermentum erat. Ut pharetra accumsan bibendum. 
+Proin mollis orci velit, at facilisis mauris cursus sollicitudin. In viverra 
+condimentum vestibulum. Vivamus quis urna at libero tristique dictum sit amet 
+sed nibh. Fusce consequat molestie efficitur. Maecenas porttitor quis libero ac 
+congue. Quisque consectetur gravida dui, id placerat nulla pellentesque at. 
+Nam maximus, ex quis mattis lacinia, est mi eleifend urna, nec varius sem 
+est id ex.
+
+Morbi cursus placerat quam. Proin non nunc eu nisl fringilla volutpat eu sit 
+amet ipsum. Mauris vel dolor blandit lacus pellentesque faucibus. Phasellus 
+sed nisl in ipsum imperdiet tincidunt a vehicula sem. Maecenas quis tellus
+vitae purus suscipit scelerisque quis nec felis. Phasellus consequat enim enim, 
+a suscipit felis porta et. Vivamus luctus nunc nec ullamcorper varius. Integer 
+mattis libero nec elit accumsan, in faucibus lacus imperdiet. Proin bibendum
+mi felis, quis laoreet libero malesuada et. Maecenas facilisis dolor nisi, 
+a dapibus velit consequat eget. Suspendisse volutpat convallis arcu. Nulla
+sodales vel turpis ac sodales. Morbi congue, erat sit amet ultrices
+vestibulum, nisi eros dignissim nunc, in pulvinar dui augue tincidunt 
+velit. Proin dapibus volutpat enim eu rutrum. Class aptent taciti 
+sociosqu ad litora torquent per conubia nostra, per inceptos himenaeos.
+
+Etiam nec tincidunt dui. Nullam placerat, ante eu dignissim mattis, tortor 
+massa suscipit nulla, nec tempor purus magna volutpat justo. Curabitur 
+vulputate libero nec velit consectetur blandit. Nunc pellentesque dui a ex 
+commodo, vitae commodo purus malesuada. Ut risus risus, dictum in ullamcorper 
+vel, mattis malesuada libero. Duis nisl eros, vehicula vitae eros ac, 
+malesuada rhoncus turpis. Curabitur quis lobortis nunc, sed fringilla risus.
+Praesent auctor nisl et turpis laoreet, vel pharetra lacus tincidunt. 
+Quisque metus turpis, luctus nec dignissim at, hendrerit non neque.
+''';
+      final words = readmeText.split(' ')..shuffle(Random(i));
+      final readme = words.join(' ');
+
+      await _packageIndex.addPackage(PackageDocument(
+        package: 'foo_$i',
+        created: DateTime.now().subtract(Duration(seconds: i * 10)),
+        description: readme.substring(0, 160),
+        readme: readme,
+        grantedPoints: 40 + (i % 80),
+        maxPoints: 140,
+        likeCount: i,
+        tags: 'platform:linux platfrom:windows topic:pkg-$i'.split(' '),
+        version: '1.0.$i',
+        updated: DateTime.now(),
+        timestamp: DateTime.now(),
+        apiDocPages: [
+          ApiDocPage(
+              relativePath: 'foo_$i.dart',
+              symbols: readme.substring(0, 1024).split(' ')),
+        ],
+      ));
     }
+    print('LOADED DATA');
     await _packageIndex.markReady();
   }
 

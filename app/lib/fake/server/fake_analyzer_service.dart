@@ -60,14 +60,14 @@ class FakeAnalyzerService {
             }) as shelf.Response?)!;
           });
           _logger.info('running on port $port');
-
+/*
           (taskWorkerCloudCompute as FakeCloudCompute).startInstanceExecution();
           ss.registerScopeExitCallback(
               (taskWorkerCloudCompute as FakeCloudCompute)
                   .stopInstanceExecution);
           await taskBackend.backfillTrackingState();
           await taskBackend.start();
-
+*/
           await ProcessSignal.sigint.watch().first;
 
           _logger.info('shutting down');

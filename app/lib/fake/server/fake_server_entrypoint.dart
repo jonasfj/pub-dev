@@ -137,27 +137,27 @@ class FakeServerCommand extends Command {
       return shelf.Response.notFound('Not Found.');
     }
 
-    await updateLocalBuiltFilesIfNeeded();
+    //await updateLocalBuiltFilesIfNeeded();
     await Future.wait(
       [
         storageServer.run(port: storagePort),
-        pubServer.run(
+        /*pubServer.run(
           port: port,
           configuration: configuration,
           extraHandler: forwardUpdatesHandler,
-        ),
+        ),*/
         searchService.run(
           port: searchPort,
           configuration: configuration,
         ),
-        analyzerService.run(
+        /*analyzerService.run(
           port: analyzerPort,
           configuration: configuration,
         ),
         dartdocService.run(
           port: dartdocPort,
           configuration: configuration,
-        ),
+        ),*/
       ],
       eagerError: true,
     );
